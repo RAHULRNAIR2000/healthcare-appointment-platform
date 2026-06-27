@@ -1,0 +1,27 @@
+# Environment — never commit secrets
+.env
+
+# Java / Maven
+backend/target/
+*.class
+*.jar
+*.war
+
+# Python
+worker/__pycache__/
+worker/app/__pycache__/
+worker/*.pyc
+worker/.venv/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

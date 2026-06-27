@@ -1,0 +1,92 @@
+version: "3.9"
+
+networks:
+  hap-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: hap-postgres
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hap-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: hap-rabbitmq
+    env_file: .env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MGMT_PORT}:15672"
+    networks:
+      - hap-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  backend:
+    image: eclipse-temurin:17-jre-alpine
+    container_name: hap-backend
+    command: sh -c "echo 'Backend placeholder running' && sleep infinity"
+    ports:
+      - "${SPRING_PORT}:9090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    networks:
+      - hap-network
+
+  worker:
+    image: python:3.11-slim
+    container_name: hap-worker
+    command: sh -c "echo 'Worker placeholder running' && sleep infinity"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    networks:
+      - hap-network
