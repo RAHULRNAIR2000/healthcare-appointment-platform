@@ -1,0 +1,48 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: healthcare-appointment-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/healthcare}
+    username: ${SPRING_DATASOURCE_USERNAME:healthuser}
+    password: ${SPRING_DATASOURCE_PASSWORD:healthpass}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: public
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5673}
+    username: ${SPRING_RABBITMQ_USERNAME:rabbituser}
+    password: ${SPRING_RABBITMQ_PASSWORD:rabbitpass}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:supersecretkey123changethisinprod}
+    expiration-ms: 86400000  # 24 hours
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.healthcare: DEBUG
+    org.springframework.security: INFO
