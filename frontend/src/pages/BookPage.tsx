@@ -231,12 +231,16 @@ export default function BookPage() {
                 <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto pr-1">
                   {slots.map((slot) => {
                     const selected = selectedSlot?.slotStart === slot.slotStart
+                    const isPastSlot = new Date(slot.slotStart) < new Date()
                     return (
                       <button
                         key={slot.slotStart}
-                        onClick={() => setSelectedSlot(slot)}
+                        disabled={isPastSlot}
+                        onClick={() => !isPastSlot && setSelectedSlot(slot)}
                         className={`py-3 rounded-xl text-sm font-medium border-2 transition-colors
-                          ${selected ? 'bg-navy-700 text-white border-navy-700' : 'bg-white text-navy-700 border-gray-200 hover:border-navy-700'}`}
+                          ${isPastSlot ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed line-through' : ''}
+                          ${selected && !isPastSlot ? 'bg-navy-700 text-white border-navy-700' : ''}
+                          ${!selected && !isPastSlot ? 'bg-white text-navy-700 border-gray-200 hover:border-navy-700' : ''}`}
                       >
                         {formatTime(slot.slotStart)}
                       </button>

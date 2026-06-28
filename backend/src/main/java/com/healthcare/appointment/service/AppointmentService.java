@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,6 +35,10 @@ public class AppointmentService {
     public AppointmentResponse book(AppointmentRequest req, User patient) {
         Doctor doctor = doctorRepository.findById(req.getDoctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+
+        if (req.getSlotStart().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Cannot book a slot in the past");
+        }
 
         boolean slotTaken = appointmentRepository
                 .findActiveByDoctorAndSlot(doctor.getId(), req.getSlotStart())
