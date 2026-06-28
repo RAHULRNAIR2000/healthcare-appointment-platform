@@ -231,7 +231,13 @@ export default function BookPage() {
                 <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto pr-1">
                   {slots.map((slot) => {
                     const selected = selectedSlot?.slotStart === slot.slotStart
-                    const isPastSlot = new Date(slot.slotStart) < new Date()
+                    // Slots are stored as UTC but displayed as local time (UTC hours = display hours).
+                    // Compare using the displayed H:M against current local time, not real UTC.
+                    const [datePart, timePart] = slot.slotStart.split('T')
+                    const [slotH, slotM] = timePart.split(':').map(Number)
+                    const [yr, mo, dy] = datePart.split('-').map(Number)
+                    const slotAsLocal = new Date(yr, mo - 1, dy, slotH, slotM, 0)
+                    const isPastSlot = slotAsLocal < new Date()
                     return (
                       <button
                         key={slot.slotStart}
